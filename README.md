@@ -3,22 +3,22 @@
 
 ## First Steps
 
-> Activate virtual environment:
-> 
-> ```source venv/bin/activate```
-> 
-> Install requirements:
-> 
-> ```pip install -r requirements.txt```
+Activate virtual environment:
+
+```source venv/bin/activate```
+
+Install requirements:
+
+```pip install -r requirements.txt```
 
 
 ## Configuration
 
-> Configure EC2 instance setup - `launch_instance.py`:
-> - name
-> - AMI
-> - instance type
-> - key name
+Configure EC2 instance setup - `launch_instance.py`:
+- name
+- AMI
+- instance type
+- key name
 
 ```python
 instance = ec2.create_instances(
@@ -45,13 +45,13 @@ instance = ec2.create_instances(
 
 ## App Usage
 
-> ### Launch instance
-> 
-> Run: ```python3 launch_instance.py```
-> 
-> Note: file ```instance_id.json``` should be created
-> 
-> ###  Boot app
-> 
-> Run: ```python3 ec2_manager_gui.py```
+### Launch instance
+
+Run: ```python3 launch_instance.py```
+
+Note: file ```instance_id.json``` should be created
+
+###  Boot app
+
+Run: ```python3 ec2_manager_gui.py```
 
