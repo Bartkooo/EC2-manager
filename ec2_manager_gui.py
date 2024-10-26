@@ -1,16 +1,18 @@
 import sys
 import boto3
+import json
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QMessageBox
-from IaC.launch_instance import instance_id
 
 
 class EC2Manager(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Load the instance ID from file
+        self.instance_id = self.load_instance_id()
+
         # Set up the AWS EC2 client
         self.ec2 = boto3.client('ec2', region_name='eu-west-3')
-        self.instance_id = instance_id
 
         # Initialize UI components
         self.start_button = QPushButton("Start Instance")
@@ -43,6 +45,18 @@ class EC2Manager(QMainWindow):
         container.setLayout(layout)
         self.setCentralWidget(container)
 
+    def load_instance_id(self):
+        try:
+            with open('instance_id.json', 'r') as f:
+                data = json.load(f)
+                return data['instance_id']
+        except FileNotFoundError:
+            QMessageBox.critical(self, "Error", "Instance ID file not found. Please run 'launch_instance.py' first.")
+            sys.exit(1)
+        except KeyError:
+            QMessageBox.critical(self, "Error", "Invalid instance ID file format.")
+            sys.exit(1)
+
     def start_instance(self):
         try:
             self.ec2.start_instances(InstanceIds=[self.instance_id])
@@ -66,7 +80,6 @@ class EC2Manager(QMainWindow):
             QMessageBox.critical(self, "Error", f"Failed to get instance status: {e}")
 
 
-# Main application execution
 def main():
     app = QApplication(sys.argv)
     manager = EC2Manager()
