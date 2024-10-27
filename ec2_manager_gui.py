@@ -87,7 +87,6 @@ class EC2Manager(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to get instance status: {e}")
 
-
     def get_instance_metrics(self):
         try:
             # Retrieve CPU usage (average over the last 5 minutes)
