@@ -58,6 +58,12 @@ In order to request CloudWatch metrics (CPU usage etc.) you need to create IAM R
 - ```AmazonSSMManagedInstanceCore``` 
 - ```CloudWatchAgentServerPolicy```
 
+### CloudWatch setup
+
+After adding IAM Role, when instance is running:
+
+Run: ```setup_cloudwatch.py```
+
 ###  Boot app
 
 Run: ```python3 ec2_manager_gui.py```

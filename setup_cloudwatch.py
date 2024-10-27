@@ -9,7 +9,7 @@ ec2_client = boto3.client('ec2', region_name='eu-west-3')
 # get instance id from file
 with open('instance_id.json', 'r') as f:
     data = json.load(f)
-    instance_id = data['instance_id']
+    INSTANCE_ID = data['instance_id']
 
 
 def install_cloudwatch(instance_id):
@@ -18,14 +18,23 @@ def install_cloudwatch(instance_id):
         DocumentName='AWS-RunShellScript',
         # replace command with appropriate for yours EC2 system
         Parameters={
-            'commands': ["wget https://amazoncloudwatch-agent-eu-west-3.s3.eu-west-3.amazonaws.com/ubuntu/amd64"
-                         "/latest/amazon-cloudwatch-agent.deb"]
+            'commands': ["wget https://amazoncloudwatch-agent-eu-west-3.s3.eu-west-3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
+                         "sudo dpkg -i -E ./amazon-cloudwatch-agent.deb"
+            ]
         }
     )
 
     command_id = response['Command']['CommandId']
-    print(f"Sent install command, waiting for completion... Command ID: {command_id}")
-    wait_for_command(instance_id, command_id)
+    # print(f"Sent install command, waiting for completion... Command ID: {command_id}")
+    # wait_for_command(instance_id, command_id)
+
+    time.sleep(5)
+
+    output = ssm_client.get_command_invocation(
+        CommandId=command_id,
+        InstanceId=instance_id
+    )
+    print("Command output:", output)
 
 
 def configure_cloudwatch(instance_id):
@@ -54,8 +63,7 @@ def configure_cloudwatch(instance_id):
     )
 
     start_agent_command = [
-        "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config "
-        "-m ec2 -c ssm:/AmazonCloudWatchAgent/instance_config -s"
+        "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:/AmazonCloudWatchAgent/instance_config -s"
     ]
 
     response = ssm_client.send_command(
@@ -66,7 +74,14 @@ def configure_cloudwatch(instance_id):
 
     command_id = response['Command']['CommandId']
     print(f"Sent start command, waiting for completion... Command ID: {command_id}")
-    wait_for_command(instance_id, command_id)
+    # wait_for_command(instance_id, command_id)
+    time.sleep(5)
+
+    output = ssm_client.get_command_invocation(
+        CommandId=command_id,
+        InstanceId=instance_id
+    )
+    print("Command output:", output)
 
 
 def wait_for_command(instance_id, command_id):
@@ -79,10 +94,11 @@ def wait_for_command(instance_id, command_id):
         if output['Status'] in ['Success', 'Failed']:
             print(f"Command completed with status: {output['Status']}")
             break
-        time.sleep(5)
+        else:
+            time.sleep(5)
 
 
 if __name__ == "__main__":
-    install_cloudwatch(instance_id)
-    configure_cloudwatch(instance_id)
-    print(f"CloudWatch installation and configuration for instance with ID:{instance_id} completed")
+    install_cloudwatch(INSTANCE_ID)
+    configure_cloudwatch(INSTANCE_ID)
+    print(f"CloudWatch installation and configuration for instance with ID:{INSTANCE_ID} completed")
