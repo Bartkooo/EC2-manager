@@ -51,6 +51,13 @@ Run: ```python3 launch_instance.py```
 
 Note: file ```instance_id.json``` should be created
 
+### Add IAM Role for the EC2 Instance (CloudWatch)
+
+In order to request CloudWatch metrics (CPU usage etc.) you need to create IAM Role with listed services and attach it to your EC2 instance
+
+- ```AmazonSSMManagedInstanceCore``` 
+- ```CloudWatchAgentServerPolicy```
+
 ###  Boot app
 
 Run: ```python3 ec2_manager_gui.py```
