@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime, timedelta, timezone
 import boto3
 import json
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QMessageBox
@@ -13,12 +14,15 @@ class EC2Manager(QMainWindow):
 
         # Set up the AWS EC2 client
         self.ec2 = boto3.client('ec2', region_name='eu-west-3')
+        self.cloudwatch = boto3.client('cloudwatch', region_name='eu-west-3')
 
         # Initialize UI components
         self.start_button = QPushButton("Start Instance")
         self.stop_button = QPushButton("Stop Instance")
         self.status_button = QPushButton("Get Status")
+        self.metrics_button = QPushButton("Get Metrics")
         self.status_label = QLabel("Instance Status: Unknown")
+        self.metrics_label = QLabel("CPU Usage: N/A, Memory Usage: N/A")
 
         # Set up the UI layout and signals
         self.setup_ui()
@@ -33,13 +37,17 @@ class EC2Manager(QMainWindow):
         self.stop_button.clicked.connect(self.stop_instance)
         # noinspection PyUnresolvedReferences
         self.status_button.clicked.connect(self.get_instance_status)
+        # noinspection PyUnresolvedReferences
+        self.metrics_button.clicked.connect(self.get_instance_metrics)
 
         # Layout setup
         layout = QVBoxLayout()
         layout.addWidget(self.start_button)
         layout.addWidget(self.stop_button)
         layout.addWidget(self.status_button)
+        layout.addWidget(self.metrics_button)
         layout.addWidget(self.status_label)
+        layout.addWidget(self.metrics_label)
 
         container = QWidget()
         container.setLayout(layout)
@@ -78,6 +86,38 @@ class EC2Manager(QMainWindow):
             self.status_label.setText(f"Instance Status: {state}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to get instance status: {e}")
+
+
+    def get_instance_metrics(self):
+        try:
+            # Retrieve CPU usage (average over the last 5 minutes)
+            cpu_response = self.cloudwatch.get_metric_statistics(
+                Namespace='AWS/EC2',
+                MetricName='CPUUtilization',
+                Dimensions=[{'Name': 'InstanceId', 'Value': self.instance_id}],
+                StartTime=datetime.now(timezone.utc) - timedelta(minutes=5),
+                EndTime=datetime.now(timezone.utc),
+                Period=300,
+                Statistics=['Average']
+            )
+            cpu_usage = cpu_response['Datapoints'][0]['Average'] if cpu_response['Datapoints'] else "N/A"
+
+            # Retrieve memory usage (if CloudWatch Agent is configured on instance)
+            mem_response = self.cloudwatch.get_metric_statistics(
+                Namespace='CWAgent',
+                MetricName='mem_used_percent',
+                Dimensions=[{'Name': 'InstanceId', 'Value': self.instance_id}],
+                StartTime=datetime.now(timezone.utc) - timedelta(minutes=5),
+                EndTime=datetime.now(timezone.utc),
+                Period=300,
+                Statistics=['Average']
+            )
+            mem_usage = mem_response['Datapoints'][0]['Average'] if mem_response['Datapoints'] else "N/A"
+
+            # Update metrics label
+            self.metrics_label.setText(f"CPU Usage: {round(cpu_usage, 2)}%, Memory Usage: {mem_usage}%")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to retrieve metrics: {e}")
 
 
 def main():
