@@ -1,8 +1,5 @@
 import boto3
-import time
 import json
-
-from botocore.exceptions import ClientError
 
 # change region if needed
 ssm_client = boto3.client('ssm', region_name='eu-west-3')
