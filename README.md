@@ -45,11 +45,20 @@ instance = ec2.create_instances(
 
 ## App Usage
 
-### Launch instance
+### Launch or connect instance
 
-Run: ```python3 launch_instance.py```
+#### To launch new instance
 
-Note: file ```instance_id.json``` should be created
+> Run: ```launch_instance.py```
+> 
+> Note: file ```instance_id.json``` should be created
+
+#### To connect already created one
+
+> Create/modify ```instance_id.json```:
+> ```json
+> {"instance_id": "your_instance_id"}
+> ```
 
 ### Add IAM Role for the EC2 Instance (CloudWatch)
 
@@ -66,5 +75,5 @@ Run: ```setup_cloudwatch.py```
 
 ###  Boot app
 
-Run: ```python3 ec2_manager_gui.py```
+Run: ```ec2_manager_gui.py```
 
