@@ -2,6 +2,8 @@ import boto3
 import time
 import json
 
+from botocore.exceptions import ClientError
+
 # change region if needed
 ssm_client = boto3.client('ssm', region_name='eu-west-3')
 ec2_client = boto3.client('ec2', region_name='eu-west-3')
@@ -25,15 +27,9 @@ def install_cloudwatch(instance_id):
     )
 
     command_id = response['Command']['CommandId']
-    # print(f"Sent install command, waiting for completion... Command ID: {command_id}")
-    # wait_for_command(instance_id, command_id)
 
-    time.sleep(5)
+    output = try_output(command_id, instance_id)
 
-    output = ssm_client.get_command_invocation(
-        CommandId=command_id,
-        InstanceId=instance_id
-    )
     print("Command output:", output)
 
 
@@ -74,28 +70,23 @@ def configure_cloudwatch(instance_id):
 
     command_id = response['Command']['CommandId']
     print(f"Sent start command, waiting for completion... Command ID: {command_id}")
-    # wait_for_command(instance_id, command_id)
-    time.sleep(5)
 
-    output = ssm_client.get_command_invocation(
-        CommandId=command_id,
-        InstanceId=instance_id
-    )
+    output = try_output(command_id, instance_id)
     print("Command output:", output)
 
 
-def wait_for_command(instance_id, command_id):
+def try_output(command_id, instance_id):
     while True:
-        output = ssm_client.get_command_invocation(
-            InstanceId=instance_id,
-            CommandId=command_id
-        )
-
-        if output['Status'] in ['Success', 'Failed']:
-            print(f"Command completed with status: {output['Status']}")
-            break
-        else:
-            time.sleep(5)
+        try:
+            output = ssm_client.get_command_invocation(
+                CommandId=command_id,
+                InstanceId=instance_id
+            )
+            if output['Status'] == 'Success':
+                return output
+            else: continue
+        except:
+            continue
 
 
 if __name__ == "__main__":
