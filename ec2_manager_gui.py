@@ -19,6 +19,7 @@ class EC2Manager(QMainWindow):
         # Initialize UI components
         self.start_button = QPushButton("Start Instance")
         self.stop_button = QPushButton("Stop Instance")
+        self.reboot_button = QPushButton("Reboot Instance")
         self.status_button = QPushButton("Get Status")
         self.metrics_button = QPushButton("Get Metrics")
         self.status_label = QLabel("Instance Status: Unknown")
@@ -36,6 +37,8 @@ class EC2Manager(QMainWindow):
         # noinspection PyUnresolvedReferences
         self.stop_button.clicked.connect(self.stop_instance)
         # noinspection PyUnresolvedReferences
+        self.reboot_button.clicked.connect(self.reboot_instance)
+        # noinspection PyUnresolvedReferences
         self.status_button.clicked.connect(self.get_instance_status)
         # noinspection PyUnresolvedReferences
         self.metrics_button.clicked.connect(self.get_instance_metrics)
@@ -44,6 +47,7 @@ class EC2Manager(QMainWindow):
         layout = QVBoxLayout()
         layout.addWidget(self.start_button)
         layout.addWidget(self.stop_button)
+        layout.addWidget(self.reboot_button)
         layout.addWidget(self.status_button)
         layout.addWidget(self.metrics_button)
         layout.addWidget(self.status_label)
@@ -78,6 +82,13 @@ class EC2Manager(QMainWindow):
             QMessageBox.information(self, "Success", "Instance stopping...")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to stop instance: {e}")
+
+    def reboot_instance(self):
+        try:
+            self.ec2.reboot_instances(InstanceIds=[self.instance_id])
+            QMessageBox.information(self, "Success", "Rebooting instance...")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to reboot instance: {e}")
 
     def get_instance_status(self):
         try:
