@@ -1,11 +1,11 @@
 import boto3
 import json
 
-# change region if needed
+# Change region if needed
 ssm_client = boto3.client('ssm', region_name='eu-west-3')
 ec2_client = boto3.client('ec2', region_name='eu-west-3')
 
-# get instance id from file
+# Get instance id from file
 with open('instance_id.json', 'r') as f:
     data = json.load(f)
     INSTANCE_ID = data['instance_id']
@@ -15,7 +15,7 @@ def install_cloudwatch(instance_id):
     response = ssm_client.send_command(
         InstanceIds=[instance_id],
         DocumentName='AWS-RunShellScript',
-        # replace command with appropriate for yours EC2 system
+        # Replace command with appropriate for yours EC2 system
         Parameters={
             'commands': ["wget https://amazoncloudwatch-agent-eu-west-3.s3.eu-west-3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb",
                          "sudo dpkg -i -E ./amazon-cloudwatch-agent.deb"

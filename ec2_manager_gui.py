@@ -100,7 +100,7 @@ class EC2Manager(QMainWindow):
 
     def get_instance_metrics(self):
         try:
-            # Retrieve CPU usage (average over the last 5 minutes)
+            # Retrieve CPU usage
             cpu_response = self.cloudwatch.get_metric_statistics(
                 Namespace='AWS/EC2',
                 MetricName='CPUUtilization',
@@ -112,10 +112,10 @@ class EC2Manager(QMainWindow):
             )
             cpu_usage = cpu_response['Datapoints'][0]['Average'] if cpu_response['Datapoints'] else "N/A"
 
-            # Retrieve memory usage (if CloudWatch Agent is configured on instance)
+            # Retrieve memory usage
             mem_response = self.cloudwatch.get_metric_statistics(
                 Namespace='CWAgent',
-                MetricName='mem_used_percent',
+                MetricName='mem_active',
                 Dimensions=[{'Name': 'InstanceId', 'Value': self.instance_id}],
                 StartTime=datetime.now(timezone.utc) - timedelta(minutes=5),
                 EndTime=datetime.now(timezone.utc),
