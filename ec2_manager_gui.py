@@ -22,8 +22,9 @@ class EC2Manager(QMainWindow):
         self.reboot_button = QPushButton("Reboot Instance")
         self.status_button = QPushButton("Get Status")
         self.metrics_button = QPushButton("Get Metrics")
-        self.status_label = QLabel("Instance Status: Unknown")
-        self.metrics_label = QLabel("CPU Usage: N/A, Memory Usage: N/A")
+        self.status_label = QLabel("Instance Status: N/A")
+        self.cpu_label = QLabel("CPU Usage: N/A")
+        self.memory_label = QLabel("Memory Usage: N/A")
 
         # Set up the UI layout and signals
         self.setup_ui()
@@ -51,7 +52,8 @@ class EC2Manager(QMainWindow):
         layout.addWidget(self.status_button)
         layout.addWidget(self.metrics_button)
         layout.addWidget(self.status_label)
-        layout.addWidget(self.metrics_label)
+        layout.addWidget(self.cpu_label)
+        layout.addWidget(self.memory_label)
 
         container = QWidget()
         container.setLayout(layout)
@@ -94,7 +96,7 @@ class EC2Manager(QMainWindow):
         try:
             response = self.ec2.describe_instances(InstanceIds=[self.instance_id])
             state = response['Reservations'][0]['Instances'][0]['State']['Name']
-            self.status_label.setText(f"Instance Status: {state}")
+            self.status_label.setText(f"Instance Status: {state.capitalize()}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to get instance status: {e}")
 
@@ -124,8 +126,9 @@ class EC2Manager(QMainWindow):
             )
             mem_usage = mem_response['Datapoints'][0]['Average'] if mem_response['Datapoints'] else "N/A"
 
-            # Update metrics label
-            self.metrics_label.setText(f"CPU Usage: {round(cpu_usage, 2)}%, Memory Usage: {round(mem_usage, 2)}%")
+            # Update metrics labels
+            self.cpu_label.setText(f"CPU Usage: {round(cpu_usage, 2)}%")
+            self.memory_label.setText(f"Memory Usage: {round(mem_usage, 2)}%")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to retrieve metrics: {e}")
 
