@@ -115,7 +115,7 @@ class EC2Manager(QMainWindow):
             # Retrieve memory usage
             mem_response = self.cloudwatch.get_metric_statistics(
                 Namespace='CWAgent',
-                MetricName='mem_active',
+                MetricName='mem_used_percent',
                 Dimensions=[{'Name': 'InstanceId', 'Value': self.instance_id}],
                 StartTime=datetime.now(timezone.utc) - timedelta(minutes=5),
                 EndTime=datetime.now(timezone.utc),
@@ -125,7 +125,7 @@ class EC2Manager(QMainWindow):
             mem_usage = mem_response['Datapoints'][0]['Average'] if mem_response['Datapoints'] else "N/A"
 
             # Update metrics label
-            self.metrics_label.setText(f"CPU Usage: {round(cpu_usage, 2)}%, Memory Usage: {mem_usage}%")
+            self.metrics_label.setText(f"CPU Usage: {round(cpu_usage, 2)}%, Memory Usage: {round(mem_usage, 2)}%")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to retrieve metrics: {e}")
 
