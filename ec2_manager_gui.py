@@ -3,6 +3,9 @@ from datetime import datetime, timedelta, timezone
 import boto3
 import json
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QMessageBox
+from PyQt5.QtCore import Qt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 
 class EC2Manager(QMainWindow):
@@ -26,12 +29,15 @@ class EC2Manager(QMainWindow):
         self.cpu_label = QLabel("CPU Usage: N/A")
         self.memory_label = QLabel("Memory Usage: N/A")
 
+        # Initialize the graph
+        self.cpu_graph = CPUUsageGraph()
+
         # Set up the UI layout and signals
         self.setup_ui()
 
     def setup_ui(self):
         self.setWindowTitle("AWS EC2 Manager")
-        self.setGeometry(100, 100, 300, 200)
+        self.setGeometry(100, 100, 600, 600)
 
         # noinspection PyUnresolvedReferences
         self.start_button.clicked.connect(self.start_instance)
@@ -54,6 +60,7 @@ class EC2Manager(QMainWindow):
         layout.addWidget(self.status_label)
         layout.addWidget(self.cpu_label)
         layout.addWidget(self.memory_label)
+        layout.addWidget(self.cpu_graph)
 
         container = QWidget()
         container.setLayout(layout)
@@ -126,11 +133,40 @@ class EC2Manager(QMainWindow):
             )
             mem_usage = mem_response['Datapoints'][0]['Average'] if mem_response['Datapoints'] else "N/A"
 
+            timestamps = [dp['Timestamp'] for dp in cpu_response['Datapoints']]
+            cpu_usages = [dp['Average'] for dp in cpu_response['Datapoints']]
+            timestamps, cpu_usages = zip(*sorted(zip(timestamps, cpu_usages)))
+
             # Update metrics labels
             self.cpu_label.setText(f"CPU Usage: {round(cpu_usage, 2)}%")
             self.memory_label.setText(f"Memory Usage: {round(mem_usage, 2)}%")
+
+            # Update metrics labels and graph
+            self.cpu_graph.update_graph(timestamps, cpu_usages)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to retrieve metrics: {e}")
+
+
+class CPUUsageGraph(FigureCanvas):
+    def __init__(self):
+        self.figure = Figure()
+        self.ax = self.figure.add_subplot(111)
+        super().__init__(self.figure)
+
+        # Initial plot settings
+        self.ax.set_title("CPU Usage Over Time")
+        self.ax.set_xlabel("Time")
+        self.ax.set_ylabel("CPU Usage (%)")
+        self.ax.grid(True)
+
+    def update_graph(self, timestamps, cpu_usages):
+        self.ax.clear()
+        self.ax.plot(timestamps, cpu_usages, marker='o', linestyle='-', color='b')
+        self.ax.set_title("CPU Usage Over Time")
+        self.ax.set_xlabel("Time")
+        self.ax.set_ylabel("CPU Usage (%)")
+        self.ax.grid(True)
+        self.draw()
 
 
 def main():
