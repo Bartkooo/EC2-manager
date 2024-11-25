@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBo
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from matplotlib.dates import DateFormatter, MinuteLocator
 
 
 class EC2Manager(QMainWindow):
@@ -114,9 +115,9 @@ class EC2Manager(QMainWindow):
                 Namespace='AWS/EC2',
                 MetricName='CPUUtilization',
                 Dimensions=[{'Name': 'InstanceId', 'Value': self.instance_id}],
-                StartTime=datetime.now(timezone.utc) - timedelta(minutes=5),
+                StartTime=datetime.now(timezone.utc) - timedelta(minutes=15),
                 EndTime=datetime.now(timezone.utc),
-                Period=300,
+                Period=60,
                 Statistics=['Average']
             )
             cpu_usage = cpu_response['Datapoints'][0]['Average'] if cpu_response['Datapoints'] else "N/A"
@@ -126,9 +127,9 @@ class EC2Manager(QMainWindow):
                 Namespace='CWAgent',
                 MetricName='mem_used_percent',
                 Dimensions=[{'Name': 'InstanceId', 'Value': self.instance_id}],
-                StartTime=datetime.now(timezone.utc) - timedelta(minutes=5),
+                StartTime=datetime.now(timezone.utc) - timedelta(minutes=15),
                 EndTime=datetime.now(timezone.utc),
-                Period=300,
+                Period=60,
                 Statistics=['Average']
             )
             mem_usage = mem_response['Datapoints'][0]['Average'] if mem_response['Datapoints'] else "N/A"
@@ -162,10 +163,17 @@ class CPUUsageGraph(FigureCanvas):
     def update_graph(self, timestamps, cpu_usages):
         self.ax.clear()
         self.ax.plot(timestamps, cpu_usages, marker='o', linestyle='-', color='b')
+
+        # Change date format
+        self.ax.xaxis.set_major_formatter(DateFormatter('%H:%M'))
+        self.ax.xaxis.set_major_locator(MinuteLocator(interval=1))
+        self.ax.set_xlim([min(timestamps), max(timestamps)])
+
         self.ax.set_title("CPU Usage Over Time")
         self.ax.set_xlabel("Time")
         self.ax.set_ylabel("CPU Usage (%)")
         self.ax.grid(True)
+        self.figure.autofmt_xdate()
         self.draw()
 
 
