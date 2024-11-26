@@ -115,9 +115,9 @@ class EC2Manager(QMainWindow):
                 Namespace='AWS/EC2',
                 MetricName='CPUUtilization',
                 Dimensions=[{'Name': 'InstanceId', 'Value': self.instance_id}],
-                StartTime=datetime.now(timezone.utc) - timedelta(minutes=15),
+                StartTime=datetime.now(timezone.utc) - timedelta(minutes=30),
                 EndTime=datetime.now(timezone.utc),
-                Period=60,
+                Period=300,
                 Statistics=['Average']
             )
             cpu_usage = cpu_response['Datapoints'][0]['Average'] if cpu_response['Datapoints'] else "N/A"
@@ -129,7 +129,7 @@ class EC2Manager(QMainWindow):
                 Dimensions=[{'Name': 'InstanceId', 'Value': self.instance_id}],
                 StartTime=datetime.now(timezone.utc) - timedelta(minutes=15),
                 EndTime=datetime.now(timezone.utc),
-                Period=60,
+                Period=300,
                 Statistics=['Average']
             )
             mem_usage = mem_response['Datapoints'][0]['Average'] if mem_response['Datapoints'] else "N/A"
@@ -142,7 +142,6 @@ class EC2Manager(QMainWindow):
             self.cpu_label.setText(f"CPU Usage: {round(cpu_usage, 2)}%")
             self.memory_label.setText(f"Memory Usage: {round(mem_usage, 2)}%")
 
-            # Update metrics labels and graph
             self.cpu_graph.update_graph(timestamps, cpu_usages)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to retrieve metrics: {e}")
@@ -166,13 +165,12 @@ class CPUUsageGraph(FigureCanvas):
 
         # Change date format
         self.ax.xaxis.set_major_formatter(DateFormatter('%H:%M'))
-        self.ax.xaxis.set_major_locator(MinuteLocator(interval=1))
+        self.ax.xaxis.set_major_locator(MinuteLocator(interval=5))
         self.ax.set_xlim([min(timestamps), max(timestamps)])
 
         self.ax.set_title("CPU Usage Over Time")
         self.ax.set_xlabel("Time")
         self.ax.set_ylabel("CPU Usage (%)")
-        self.ax.grid(True)
         self.figure.autofmt_xdate()
         self.draw()
 
