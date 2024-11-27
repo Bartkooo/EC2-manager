@@ -28,10 +28,14 @@ def launch_instance():
 
     instance.load()
 
-    with open('instance_id.json', 'w') as f:
-        json.dump({'instance_id': instance.id}, f)
+    save_instance_id(instance.id)
 
     print(f"Launched instance ID: {instance.id}")
+
+
+def save_instance_id(instance_id):
+    with open('instance_id.json', 'w') as f:
+        json.dump({'instance_id': instance_id}, f)
 
 
 if __name__ == "__main__":
