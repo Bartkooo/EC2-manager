@@ -11,6 +11,11 @@ Install requirements:
 
 ```pip install -r requirements.txt```
 
+Configure AWS CLI to connect to your account:
+
+```aws configure```
+
+> AWS CLI [Installation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 
 ## Configuration
 
