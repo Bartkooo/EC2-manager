@@ -3,7 +3,6 @@ from datetime import datetime, timedelta, timezone
 import boto3
 import json
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QMessageBox
-from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.dates import DateFormatter, MinuteLocator
@@ -140,7 +139,10 @@ class EC2Manager(QMainWindow):
 
             # Update metrics labels
             self.cpu_label.setText(f"CPU Usage: {round(cpu_usage, 2)}%")
-            self.memory_label.setText(f"Memory Usage: {round(mem_usage, 2)}%")
+
+            # In case of a problem with loading memory usage, the application will continue to work
+            self.memory_label.setText(f"Memory Usage: "
+                                      f"{round(float(mem_usage), 2) if mem_usage != "N/A" else mem_usage}%")
 
             self.cpu_graph.update_graph(timestamps, cpu_usages)
         except Exception as e:
